@@ -1,3 +1,5 @@
+import 'package:imc/tela_avaliacao.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -53,6 +55,42 @@ class _MyHomePageState extends State<MyHomePage> {
   double _peso = 0;
   double _imc = 0;
 
+  var maskFormatter = new MaskTextInputFormatter(
+      mask: '#.##',
+      filter: { "#": RegExp(r'[0-9]') },
+      type: MaskAutoCompletionType.lazy
+  );
+
+  void _showResultDialog(double _imc) {
+    String result = 'Seu IMC é ${_imc.toStringAsFixed(2)}.';
+    if (_imc < 18.5) {
+      result += ' Você está abaixo do peso.';
+    } else if (_imc < 25) {
+      result += ' Seu peso está normal.';
+    } else if (_imc < 30) {
+      result += ' Você está acima do peso.';
+    } else {
+      result += ' Você está obeso.';
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Resultado'),
+          content: Text(result),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -89,6 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
           children: <Widget>[
             TextField(
+              inputFormatters: [maskFormatter],
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: 'Altura (metros)',
@@ -111,12 +150,25 @@ class _MyHomePageState extends State<MyHomePage> {
               },
             ),
             SizedBox(height: 16),
+
             ElevatedButton(
               child: Text('Calcular IMC'),
               onPressed: () {
                 setState(() {
                   _imc = _peso / (_altura * _altura);
                 });
+                _showResultDialog(_imc);
+
+              },
+            ),
+            const SizedBox(height: 10),
+
+            ElevatedButton(
+              child: Text('Ver tabela'),
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => TelaAvaliacao(result: _imc.toStringAsFixed(2)))
+                );
               },
             ),
             SizedBox(height: 16),
